@@ -10,13 +10,13 @@ import UIKit
 
 class ViewController: UITableViewController {
     var petitions = [Petition]()
-    
+    var urlString: String!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let urlString: String
-        
+        navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credits", style: .plain, target: self, action: #selector(Credits))
+    
         if navigationController?.tabBarItem.tag == 0 {
             // urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
             urlString = "https://www.hackingwithswift.com/samples/petitions-1.json"
@@ -43,6 +43,13 @@ class ViewController: UITableViewController {
             petitions = jsonPetitions.results
             tableView.reloadData()
         }
+    }
+    
+    @objc func Credits(){
+        let alert  = UIAlertController(title: "Credits to", message: urlString, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: nil))
+        present(alert, animated: true)
+        
     }
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
