@@ -10,12 +10,15 @@ import UIKit
 
 class ViewController: UITableViewController {
     var petitions = [Petition]()
+    var filterPetitions = [Petition]()
     var urlString: String!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: "Credits", style: .plain, target: self, action: #selector(Credits))
+
+        navigationItem.leftBarButtonItem = UIBarButtonItem(barButtonSystemItem: .search, target: self, action: #selector(Filter))
     
         if navigationController?.tabBarItem.tag == 0 {
             // urlString = "https://api.whitehouse.gov/v1/petitions.json?limit=100"
@@ -27,12 +30,10 @@ class ViewController: UITableViewController {
         
         if let url = URL(string: urlString) {
             if let data = try? Data(contentsOf: url) {
-                // Ok parse
                 parse(json: data)
                 return
             }
         }
-        
         showError()
     }
     
@@ -41,6 +42,7 @@ class ViewController: UITableViewController {
         
         if let jsonPetitions = try? decoder.decode(Petitions.self, from: json) {
             petitions = jsonPetitions.results
+            filterPetitions = petitions
             tableView.reloadData()
         }
     }
@@ -52,14 +54,38 @@ class ViewController: UITableViewController {
         
     }
     
+    @objc func Filter() {
+        let alert  = UIAlertController(title: "Filter petitions", message: "Enter word to filter petitions", preferredStyle: .alert)
+        alert.addTextField()
+        
+        let filterAction = UIAlertAction(title: "Filter", style: .default) {
+            [weak self, weak alert] _ in
+            guard let word = alert?.textFields?[0].text else {return}
+            self?.filterData(with: word)
+        }
+        alert.addAction(filterAction)
+        present(alert, animated: true, completion: nil)
+    }
+    
+    func filterData(with word: String) {
+        let word = word.lowercased()
+        filterPetitions.removeAll()
+        for petition in petitions {
+            if petition.title.contains(word) || petition.body.contains(word) {
+                filterPetitions.append(petition)
+            }
+        }
+        tableView.reloadData()
+    }
+    
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return petitions.count
+        return filterPetitions.count
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Cell", for: indexPath)
         
-        let petition = petitions[indexPath.row]
+        let petition = filterPetitions[indexPath.row]
         cell.textLabel?.text = petition.title
         cell.detailTextLabel?.text = petition.body
         
