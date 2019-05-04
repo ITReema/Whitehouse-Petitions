@@ -76,9 +76,15 @@ class ViewController: UITableViewController {
     func filterData(with word: String) {
         let word = word.lowercased()
         filterPetitions.removeAll()
-        for petition in petitions {
+        DispatchQueue.global().async { [weak self] in
+            guard let self = self else{return}
+        for petition in self.petitions {
             if petition.title.contains(word) || petition.body.contains(word) {
-                filterPetitions.append(petition)
+                self.filterPetitions.append(petition)
+            }
+        }
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
             }
         }
         tableView.reloadData()
